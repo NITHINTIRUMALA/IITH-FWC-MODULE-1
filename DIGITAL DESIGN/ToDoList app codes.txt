@@ -1,0 +1,752 @@
+activity_home.xml (Home Screen):
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Task List"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:padding="16dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/taskRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+</LinearLayout>
+
+activity_task_creation.xml (Task Creation Screen):
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/titleEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Task Title"
+        android:padding="16dp" />
+
+    <EditText
+        android:id="@+id/descriptionEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Task Description"
+        android:padding="16dp" />
+
+    <!-- Other UI elements for priority, due date, etc. -->
+
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save"
+        android:layout_gravity="center"
+        android:padding="16dp" />
+
+</LinearLayout>
+
+activity_task_editing.xml (Task Editing Screen):
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/titleEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Task Title"
+        android:padding="16dp" />
+
+    <EditText
+        android:id="@+id/descriptionEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Task Description"
+        android:padding="16dp" />
+
+    <!-- Other UI elements for priority, due date, etc. -->
+
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save"
+        android:layout_gravity="center"
+        android:padding="16dp" />
+
+</LinearLayout>
+
+activity_task_details.xml (Task Details Screen):
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Task Title"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:padding="16dp" />
+
+    <TextView
+        android:id="@+id/descriptionTextView"
+        android:layout_width="match_parent"
+        android:layout_height
+
+data model class in Java that represents a task with properties like task title, description, priority, due date, and completion status:
+public class Task {
+    private String title;
+    private String description;
+    private int priority;
+    private Date dueDate;
+    private boolean isCompleted;
+
+    public Task(String title, String description, int priority, Date dueDate, boolean isCompleted) {
+        this.title = title;
+        this.description = description;
+        this.priority = priority;
+        this.dueDate = dueDate;
+        this.isCompleted = isCompleted;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    public Date getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(Date dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    public boolean isCompleted() {
+        return isCompleted;
+    }
+
+    public void setCompleted(boolean completed) {
+        isCompleted = completed;
+    }
+}
+
+Add the necessary dependencies to your app's build.gradle file:
+dependencies {
+    // Room
+    implementation "androidx.room:room-runtime:2.4.0"
+    annotationProcessor "androidx.room:room-compiler:2.4.0"
+}
+
+Create an entity class TaskEntity that represents a task in your local database:
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "tasks")
+public class TaskEntity {
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+    private String title;
+    private String description;
+    private int priority;
+    private long dueDate;
+    private boolean isCompleted;
+
+    // Constructor, getters, and setters
+}
+
+Create a DAO (Data Access Object) interface TaskDao that defines the database operations for tasks:
+import androidx.room.Dao;
+import androidx.room.Delete;
+import androidx.room.Insert;
+import androidx.room.Query;
+import androidx.room.Update;
+
+import java.util.List;
+
+@Dao
+public interface TaskDao {
+    @Query("SELECT * FROM tasks")
+    List<TaskEntity> getAllTasks();
+
+    @Insert
+    void insertTask(TaskEntity task);
+
+    @Update
+    void updateTask(TaskEntity task);
+
+    @Delete
+    void deleteTask(TaskEntity task);
+}
+
+Create an abstract class AppDatabase that extends RoomDatabase and defines the database instance and DAOs:
+import androidx.room.Database;
+import androidx.room.RoomDatabase;
+
+@Database(entities = {TaskEntity.class}, version = 1)
+public abstract class AppDatabase extends RoomDatabase {
+    public abstract TaskDao taskDao();
+}
+
+Initialize the database in your Application class or activity:
+import android.app.Application;
+import androidx.room.Room;
+
+public class MyApp extends Application {
+    private AppDatabase database;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        database = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "task-db")
+                .build();
+    }
+
+    public AppDatabase getDatabase() {
+        return database;
+    }
+}
+
+Use the DAO and database instance to perform database operations in your activity or fragment:
+import androidx.appcompat.app.AppCompatActivity;
+import android.os.Bundle;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class MainActivity extends AppCompatActivity {
+    private TaskDao taskDao;
+    private ExecutorService executorService;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Initialize DAO and executor service
+        AppDatabase database = ((MyApp) getApplication()).getDatabase();
+        taskDao = database.taskDao();
+        executorService = Executors.newSingleThreadExecutor();
+
+        // Example usage: Insert a task
+        executorService.execute(() -> {
+            TaskEntity task = new TaskEntity();
+            task.setTitle("Sample Task");
+            task.setDescription("This is a sample task");
+            task.setPriority(1);
+            task.setDueDate(System.currentTimeMillis());
+            task.setCompleted(false);
+
+            taskDao.insertTask(task);
+        });
+
+        // Example usage: Retrieve all tasks
+        executorService.execute(() -> {
+            List<TaskEntity> tasks = taskDao.getAllTasks();
+            // Do something with the retrieved tasks
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executorService.shutdown();
+    }
+}
+
+Create a layout file for the item view of the RecyclerView (item_task.xml):
+<!-- item_task.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:padding="16dp" />
+
+    <TextView
+        android:id="@+id/descriptionTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:padding="16dp" />
+
+    <!-- Other UI elements for priority, due date, etc. -->
+
+    <Button
+        android:id="@+id/completeButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Complete"
+        android:padding="16dp" />
+
+    <Button
+        android:id="@+id/deleteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Delete"
+        android:padding="16dp" />
+
+</LinearLayout>
+
+Create a ViewHolder class to hold references to the views in the item view:
+public class TaskViewHolder extends RecyclerView.ViewHolder {
+    public TextView titleTextView;
+    public TextView descriptionTextView;
+    public Button completeButton;
+    public Button deleteButton;
+
+    public TaskViewHolder(@NonNull View itemView) {
+        super(itemView);
+        titleTextView = itemView.findViewById(R.id.titleTextView);
+        descriptionTextView = itemView.findViewById(R.id.descriptionTextView);
+        completeButton = itemView.findViewById(R.id.completeButton);
+        deleteButton = itemView.findViewById(R.id.deleteButton);
+    }
+}
+
+Create an adapter class TaskAdapter to bind the task data to the RecyclerView:
+public class TaskAdapter extends RecyclerView.Adapter<TaskViewHolder> {
+    private List<Task> taskList;
+    private OnTaskInteractionListener listener;
+
+    public TaskAdapter(List<Task> taskList, OnTaskInteractionListener listener) {
+        this.taskList = taskList;
+        this.listener = listener;
+    }
+
+    @NonNull
+    @Override
+    public TaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_task, parent, false);
+        return new TaskViewHolder(itemView);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
+        Task task = taskList.get(position);
+        
+        holder.titleTextView.setText(task.getTitle());
+        holder.descriptionTextView.setText(task.getDescription());
+
+        holder.completeButton.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onTaskComplete(task);
+            }
+        });
+
+        holder.deleteButton.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onTaskDelete(task);
+            }
+        });
+    }
+
+    @Override
+    public int getItemCount() {
+        return taskList.size();
+    }
+
+    public interface OnTaskInteractionListener {
+        void onTaskComplete(Task task);
+        void onTaskDelete(Task task);
+    }
+}
+
+In your home screen activity, set up the RecyclerView and initialize the adapter:
+public class HomeActivity extends AppCompatActivity implements TaskAdapter.OnTaskInteractionListener {
+    private RecyclerView recyclerView;
+    private TaskAdapter taskAdapter;
+    private List<Task> taskList;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_home
+
+Create the layout file for the "Add Task" screen (activity_add_task.xml):
+<!-- activity_add_task.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/titleEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Title" />
+
+    <EditText
+        android:id="@+id/descriptionEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Description" />
+
+    <!-- Priority, Due Date, and other input fields -->
+
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save" />
+
+</LinearLayout>
+
+Create the layout file for the "Edit Task" screen (activity_edit_task.xml):
+<!-- activity_edit_task.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/titleEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Title" />
+
+    <EditText
+        android:id="@+id/descriptionEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Description" />
+
+    <!-- Priority, Due Date, and other input fields -->
+
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save" />
+
+</LinearLayout>
+
+Create the "Add Task" activity (AddTaskActivity.java):
+public class AddTaskActivity extends AppCompatActivity {
+    private EditText titleEditText;
+    private EditText descriptionEditText;
+    // other input fields
+
+    private AppDatabase database;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_add_task);
+
+        titleEditText = findViewById(R.id.titleEditText);
+        descriptionEditText = findViewById(R.id.descriptionEditText);
+        // initialize other input fields
+
+        database = ((MyApp) getApplication()).getDatabase();
+
+        Button saveButton = findViewById(R.id.saveButton);
+        saveButton.setOnClickListener(v -> saveTask());
+    }
+
+    private void saveTask() {
+        String title = titleEditText.getText().toString();
+        String description = descriptionEditText.getText().toString();
+        // get values from other input fields
+
+        Task task = new Task(title, description, priority, dueDate, false);
+
+        executorService.execute(() -> {
+            database.taskDao().insertTask(task);
+            finish();
+        });
+    }
+}
+
+Create the "Edit Task" activity (EditTaskActivity.java):
+public class EditTaskActivity extends AppCompatActivity {
+    private EditText titleEditText;
+    private EditText descriptionEditText;
+    // other input fields
+
+    private AppDatabase database;
+    private Task task;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_edit_task);
+
+        titleEditText = findViewById(R.id.titleEditText);
+        descriptionEditText = findViewById(R.id.descriptionEditText);
+        // initialize other input fields
+
+        database = ((MyApp) getApplication()).
+
+Update the TaskAdapter class to include a callback for task deletion:
+public class TaskAdapter extends RecyclerView.Adapter<TaskViewHolder> {
+    // ...
+
+    private OnTaskInteractionListener listener;
+
+    public TaskAdapter(List<Task> taskList, OnTaskInteractionListener listener) {
+        this.taskList = taskList;
+        this.listener = listener;
+    }
+
+    // ...
+
+    public interface OnTaskInteractionListener {
+        void onTaskComplete(Task task);
+        void onTaskDelete(Task task);
+    }
+}
+
+In your HomeActivity or any other activity/fragment that displays the list of tasks, implement the OnTaskInteractionListener interface and handle the task deletion:
+public class HomeActivity extends AppCompatActivity implements TaskAdapter.OnTaskInteractionListener {
+    private RecyclerView recyclerView;
+    private TaskAdapter taskAdapter;
+    private List<Task> taskList;
+    private AppDatabase database;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_home);
+
+        recyclerView = findViewById(R.id.recyclerView);
+        // Set up RecyclerView and adapter
+
+        database = ((MyApp) getApplication()).getDatabase();
+
+        // Example usage: Delete a task
+        executorService.execute(() -> {
+            Task taskToDelete = taskList.get(position);
+            database.taskDao().deleteTask(taskToDelete);
+        });
+    }
+
+    // ...
+
+    @Override
+    public void onTaskDelete(Task task) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Delete Task")
+                .setMessage("Are you sure you want to delete this task?")
+                .setPositiveButton("Delete", (dialog, which) -> deleteTask(task))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void deleteTask(Task task) {
+        executorService.execute(() -> {
+            database.taskDao().deleteTask(task);
+            // Refresh the task list or update UI accordingly
+        });
+    }
+}
+
+Update the TaskAdapter class to include a callback for task completion:
+public class TaskAdapter extends RecyclerView.Adapter<TaskViewHolder> {
+    // ...
+
+    private OnTaskInteractionListener listener;
+
+    public TaskAdapter(List<Task> taskList, OnTaskInteractionListener listener) {
+        this.taskList = taskList;
+        this.listener = listener;
+    }
+
+    // ...
+
+    public interface OnTaskInteractionListener {
+        void onTaskComplete(Task task);
+        void onTaskDelete(Task task);
+        void onTaskStatusChange(Task task, boolean completed);
+    }
+}
+
+In your HomeActivity or any other activity/fragment that displays the list of tasks, implement the OnTaskInteractionListener interface and handle the task completion:
+public class HomeActivity extends AppCompatActivity implements TaskAdapter.OnTaskInteractionListener {
+    private RecyclerView recyclerView;
+    private TaskAdapter taskAdapter;
+    private List<Task> taskList;
+    private AppDatabase database;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_home);
+
+        recyclerView = findViewById(R.id.recyclerView);
+        // Set up RecyclerView and adapter
+
+        database = ((MyApp) getApplication()).getDatabase();
+
+        // Example usage: Mark a task as complete
+        executorService.execute(() -> {
+            Task taskToComplete = taskList.get(position);
+            taskToComplete.setCompleted(true);
+            database.taskDao().updateTask(taskToComplete);
+        });
+    }
+
+    // ...
+
+    @Override
+    public void onTaskComplete(Task task) {
+        task.setCompleted(!task.isCompleted());
+        executorService.execute(() -> {
+            database.taskDao().updateTask(task);
+            // Refresh the task list or update UI accordingly
+        });
+    }
+}
+
+Add priority and due date fields to your Task model class:
+public class Task {
+    // ...
+
+    private int priority;
+    private Date dueDate;
+
+    public Task(String title, String description, int priority, Date dueDate) {
+        // ...
+        this.priority = priority;
+        this.dueDate = dueDate;
+    }
+
+    // Getter and setter methods for priority and dueDate
+}
+
+Update the layout file for the "Add Task" screen (activity_add_task.xml) to include priority and due date input fields:
+<!-- activity_add_task.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/titleEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Title" />
+
+    <EditText
+        android:id="@+id/descriptionEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Description" />
+
+    <Spinner
+        android:id="@+id/prioritySpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/dueDateButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Set Due Date" />
+
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save" />
+
+</LinearLayout>
+
+Update the "Add Task" activity (AddTaskActivity.java) to handle priority and due date selection:
+public class AddTaskActivity extends AppCompatActivity {
+    private EditText titleEditText;
+    private EditText descriptionEditText;
+    private Spinner prioritySpinner;
+    private Button dueDateButton;
+    // ...
+
+    private int selectedPriority;
+    private Date selectedDueDate;
+
+    private AppDatabase database;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_add_task);
+
+        titleEditText = findViewById(R.id.titleEditText);
+        descriptionEditText = findViewById(R.id.descriptionEditText);
+        prioritySpinner = findViewById(R.id.prioritySpinner);
+        dueDateButton = findViewById(R.id.dueDateButton);
+        // ...
+
+        database = ((MyApp) getApplication()).getDatabase();
+
+        // Example usage: Save a task with priority and due date
+        Button saveButton = findViewById(R.id.saveButton);
+        saveButton.setOnClickListener(v -> saveTask());
+    }
+
+    private void saveTask() {
+        String title = titleEditText.getText().toString();
+        String description = descriptionEditText.getText().toString();
+        // ...
+
+        Task task = new Task(title, description, selectedPriority, selectedDueDate);
+
+        executorService.execute(() -> {
+            database.taskDao().insertTask(task);
+            finish();
+        });
+    }
+}
+
+Update the layout file for the "Edit Task" screen (activity_edit_task.xml) to include priority and due date input fields:
+<!-- activity_edit_task.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/titleEditText"
+        android:layout_width="match_parent"
+       
+
